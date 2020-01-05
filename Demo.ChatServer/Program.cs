@@ -48,6 +48,7 @@ namespace Demo.ChatServer
 
         private static void Log_OnError(Exception error)
         {
+            Console.WriteLine("Error:");
             Console.WriteLine(error);
         }
 
@@ -56,7 +57,11 @@ namespace Demo.ChatServer
             //Doesn't try to deserialise
             //Relay the chat message bytes to all connected clients
             Server.Broadcast(context.PacketBytes);
-            Server.WriteLog("Debug", "Got a chat message");
+            // Server.WriteLog("Debug", "Got a chat message");
+
+            // Deserialise it for testing
+            var packet = Utf8Json.JsonSerializer.Deserialize<ChatMessage>(context.PacketBytes);
+            Server.WriteLog("Info", $"{packet.Name}: {packet.Message}");
         }
 
         private static void Event_ClientConnected(ClientConnectedEvent e)

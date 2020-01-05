@@ -21,7 +21,7 @@ namespace Networker
 
         public void Send(int packetType, string packet)
         {
-            throw new System.NotImplementedException();
+            Send(packetType, System.Text.Encoding.ASCII.GetBytes(packet));
         }
 
         public void Send(int packetType, byte[] packet)

@@ -94,7 +94,11 @@ namespace Networker
             WriteLog("Debug", "Server started");
             State = ServerState.Running;
 
-            StartAccept(null);
+            // FIXME(eric): Test
+            var socketTokenEventArgs1 = new SocketAsyncEventArgs();
+            socketTokenEventArgs1.Completed += Completed;
+            socketTokenEventArgs1.AcceptSocket = _tcpSocket;
+            StartAccept(socketTokenEventArgs1);
         }
 
         //Completed()
@@ -140,6 +144,11 @@ namespace Networker
                         packetBufferSpan.CopyTo(packetSpan);
 
                         packetContext.ConnectionId = token.Id;
+
+                        // Remove the packet header
+                        var packetBody = packetSpan.Slice(4);
+                        packetContext.PacketBytes = packetBody.ToArray();
+                        packetContext.PacketLength = packetBody.Length;
 
                         _packetProcessor.Process(packetContext);
                     }
@@ -209,7 +218,8 @@ namespace Networker
                 {
                     acceptEventArg.AcceptSocket = null;
                 }
-                                
+
+                // FIXME(eric): Setting a breakpoint here makes it connect every time
                 bool willRaiseEvent = _tcpSocket.AcceptAsync(acceptEventArg);
                 if (!willRaiseEvent)
                 {
@@ -266,6 +276,10 @@ namespace Networker
 
         public void Broadcast(byte[] packet)
         {
+            foreach (var client in this._connections)
+            {
+                client.Value.Send(packet);
+            }
         }
 
         public void Broadcast<T>(int packetType, T packet)
